@@ -1,0 +1,7 @@
+Include
+Scripts
+pyenv.cfg
+share
+__pycache__
+site-packages
+pyvenv.cfg
