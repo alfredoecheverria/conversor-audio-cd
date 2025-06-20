@@ -59,7 +59,7 @@ class AudioLib:
     def start_recording(self):
         self.recording = True
 
-        filename = "recording_" + str(datetime.now().timestamp()) + ".wav" 
+        filename = "recording_" + str(datetime.now().strftime('%Y%m%d_%H%M%S')) + ".wav" 
         self.thread = threading.Thread(
                 target=file_writing_thread,
                 kwargs = dict(
