@@ -5,3 +5,7 @@ share
 __pycache__
 site-packages
 pyvenv.cfg
+venv/
+env/
+.venv/
+.env/
