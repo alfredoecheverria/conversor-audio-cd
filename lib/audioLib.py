@@ -51,6 +51,12 @@ class AudioLib:
         self.selected_device = device[1]
         self.max_channels = sd.query_devices(device[1], kind='input')['max_input_channels']
 
+    def select_samplerate(self, samplerate):
+        if sd.check_input_settings(device = self.selected_device, samplerate = samplerate): 
+            self.selected_samplerate = int(samplerate)
+        else:
+            return False
+
     def create_stream(self):
         if self.selected_device is None:
             self.selected_device = self.default_device()[1]
