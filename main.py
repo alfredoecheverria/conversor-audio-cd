@@ -31,7 +31,6 @@ def main():
     al = audioLib.AudioLib()
     print(al.list_input_devices())
     print(al.default_device())
-    al.create_stream(al.default_device()[1])
     app = mainApp(al)
     app.mainloop()
 

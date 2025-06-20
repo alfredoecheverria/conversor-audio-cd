@@ -21,6 +21,9 @@ class AudioLib:
     stream = None
     recording = False
     previously_recording = False
+    selected_device = None
+    selected_samplerate = None
+    max_channels = None
 
     def list_input_devices(self):
         inputs = []
@@ -44,19 +47,25 @@ class AudioLib:
                 self.q.put(None)
                 self.previously_recording = False
 
+    def select_device(self, device):
+        self.selected_device = device[1]
+        self.max_channels = sd.query_devices(device[1], kind='input')['max_input_channels']
 
-    def create_stream(self, device = None, samplerate = None):
-        dev = sd.query_devices(device, kind='input')
-        if samplerate is None:
-            samplerate = dev['default_samplerate']
+    def create_stream(self):
+        if self.selected_device is None:
+            self.selected_device = self.default_device()[1]
+        if self.selected_samplerate is None:
+            dev = sd.query_devices(self.selected_device, kind='input')
+            self.selected_samplerate = dev['default_samplerate']
         if self.stream is not None:
             self.stream.close()
-        self.stream = sd.InputStream(samplerate = samplerate, device = device,
-                                     channels = dev['max_input_channels'],
-                                     callback = self.callback)
+        self.stream = sd.InputStream(samplerate = self.selected_samplerate, device = self.selected_device,
+                                     channels = self.max_channels, callback = self.callback)
         self.stream.start()
 
     def start_recording(self):
+        if self.stream is None:
+            self.create_stream()
         self.recording = True
 
         filename = "recording_" + str(datetime.now().strftime('%Y%m%d_%H%M%S')) + ".wav" 
