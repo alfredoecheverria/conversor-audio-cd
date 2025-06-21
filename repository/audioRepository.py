@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 import gridfs
 from datetime import datetime
-
+import os
 class AudioRepository:
 
     def __init__(self, uri="mongodb://localhost:27017/", db_name="Prueba"):
@@ -36,6 +36,7 @@ class AudioRepository:
     def obtener_audio_por_nombre(self, nombre: str, destino: str) -> bool:
         archivo = self.fs.find_one({"filename": nombre})
         if archivo:
+            os.makedirs(os.path.dirname(destino), exist_ok=True)
             with open(destino, "wb") as f:
                 f.write(archivo.read())
             return True

@@ -122,19 +122,40 @@ class AudioConverterApp(tk.Tk):
                 i["metadata"]["dispositivo_de_grabacion"],
                 i["metadata"]["size_kb"]             
             )
-        # Configurar el scrollbar para que se actualice con el contenido
         self.history_inner_frame.bind("<Configure>", lambda e: history_canvas.configure(scrollregion = history_canvas.bbox("all")))
 
     def add_history_entry(self, name, date, device, size_kb):
         row_index = self.history_inner_frame.grid_size()[1]
 
-        ttk.Label(self.history_inner_frame, text=name, width=25, anchor="w").grid(row=row_index, column=0, sticky="w", padx=5, pady=2)
-        ttk.Label(self.history_inner_frame, text=date, width=25, anchor="w").grid(row=row_index, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(self.history_inner_frame, text=device, width=35, anchor="w").grid(row=row_index, column=2, sticky="w", padx=10, pady=2)
-        ttk.Label(self.history_inner_frame, text=size_kb, width=10, anchor="w").grid(row=row_index, column=3, sticky="w", padx=5, pady=2)
+        # Contenedor para la fila completa
+        row_frame = tk.Frame(self.history_inner_frame, bg="white")
+        row_frame.grid(row=row_index, column=0, columnspan=4, sticky="nsew")
 
 
+        def on_row_click(event):
+            nombre = name  # ya lo tenés definido al crear la fila
+            exito = self.controller.obtener_audio_por_nombre(nombre)
 
+            if exito:
+                messagebox.showinfo("Audio descargado", f"El archivo '{nombre}' fue descargado correctamente'")
+            else:
+                messagebox.showerror("Error", f"No se pudo encontrar el archivo '{nombre}' en la base de datos.")
+
+
+        # Asociar evento click al contenedor de la fila
+        row_frame.bind("<Button-1>", on_row_click)
+
+        # Crear labels dentro del frame de fila
+        ttk.Label(row_frame, text=name, width=25, anchor="w").grid(row=0, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(row_frame, text=date, width=25, anchor="w").grid(row=0, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(row_frame, text=device, width=35, anchor="w").grid(row=0, column=2, sticky="w", padx=10, pady=2)
+        ttk.Label(row_frame, text=size_kb, width=10, anchor="w").grid(row=0, column=3, sticky="w", padx=5, pady=2)
+
+        # También podés hacer que los labels propaguen el clic
+        for child in row_frame.winfo_children():
+            child.bind("<Button-1>", on_row_click)
+
+          
 
     def toggle_recording(self):
         if not self.is_recording:
@@ -153,8 +174,8 @@ class AudioConverterApp(tk.Tk):
             messagebox.showerror("Error", "El microfono no soporta la tasa de muestreo " + num + " Hz")
 
     def listar_audios(self):
-        return self.controller.listar_audios();        
-       
+        return self.controller.listar_audios()        
+
 
 def main():
     try:

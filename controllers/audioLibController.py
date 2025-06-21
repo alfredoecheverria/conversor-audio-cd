@@ -34,6 +34,9 @@ class AudioLibController:
 
     def listar_audios(self):
         return self.audio_repository.listar_audios()    
+    
+    def obtener_audio_por_nombre(self,nombre):
+        return self.audio_repository.obtener_audio_por_nombre(nombre,"./audios_descargados/" + nombre)
         
         
 
