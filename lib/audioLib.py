@@ -2,6 +2,7 @@ from datetime import datetime
 import threading
 import queue
 import sys
+import os
 
 import soundfile as sf
 import sounddevice as sd
@@ -93,7 +94,8 @@ class AudioLib:
     def stop_recording(self):
         self.recording = False
         self.wait_for_thread()
-        return (self.current_filename, datetime.now().isoformat())
+        return (os.getcwd() + self.current_filename, str(int(os.stat(self.current_filename).st_size / 1024)) + "Kb", 
+              sd.query_devices(self.selected_device)['name']) 
 
     def wait_for_thread(self):
         t = threading.Timer(0.01, self._wait_for_thread)
