@@ -24,6 +24,7 @@ class AudioLib:
     selected_device = None
     selected_samplerate = None
     max_channels = None
+    current_filename = ""
 
     def list_input_devices(self):
         inputs = []
@@ -54,6 +55,7 @@ class AudioLib:
     def select_samplerate(self, samplerate):
         if sd.check_input_settings(device = self.selected_device, samplerate = samplerate): 
             self.selected_samplerate = int(samplerate)
+            return True
         else:
             return False
 
@@ -86,10 +88,12 @@ class AudioLib:
                     ),
                 )
         self.thread.start()
+        self.current_filename = filename
 
     def stop_recording(self):
         self.recording = False
         self.wait_for_thread()
+        return (self.current_filename, datetime.now().isoformat())
 
     def wait_for_thread(self):
         t = threading.Timer(0.01, self._wait_for_thread)
