@@ -40,7 +40,19 @@ class AudioConverterApp(tk.Tk):
         self.controller.stop_recording()
         self.record_button['text'] = "Record"
         self.record_button['command'] = self.on_rec
-        self.setup_history_section()
+        #Recorrer listado de audios
+        listado_audios = self.listar_audios()
+        for widget in self.history_inner_frame.winfo_children():
+            widget.destroy()
+        for i in listado_audios:
+            print(i)
+            self.add_history_entry(
+                i["nombre"].split("\\")[-1],
+                str(i["metadata"]["fecha_guardado"])[:16],
+                i["metadata"]["dispositivo_de_grabacion"],
+                i["metadata"]["size_kb"]             
+            )
+
 
     def create_navbar(self):
         navbar_frame = tk.Frame(self.master, bd=2, relief="raised")
@@ -114,6 +126,8 @@ class AudioConverterApp(tk.Tk):
     
         #Recorrer listado de audios
         listado_audios = self.listar_audios()
+        for widget in self.history_inner_frame.winfo_children():
+            widget.destroy()
         for i in listado_audios:
             print(i)
             self.add_history_entry(
