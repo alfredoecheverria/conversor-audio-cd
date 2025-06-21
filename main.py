@@ -29,7 +29,7 @@ class AudioConverterApp(tk.Tk):
 
         self.show_recording_section()
         self.setup_recording_section()
-        #self.setup_history_section()
+        self.setup_history_section()
 
     def on_rec(self):
         self.controller.start_recording()
@@ -45,25 +45,23 @@ class AudioConverterApp(tk.Tk):
         navbar_frame = tk.Frame(self.master, bd=2, relief="raised")
         navbar_frame.pack(side="top", fill="x")
 
-        btn_record = ttk.Button(navbar_frame, text="Grabar/Convertir", command=self.show_recording_section)
+        btn_record = ttk.Button(navbar_frame, text="Grabar y Convertir", command=self.show_recording_section)
         btn_record.pack(side="left", padx=5, pady=5)
 
-        #btn_history = ttk.Button(navbar_frame, text="Historial", command=self.show_history_section)
-        #btn_history.pack(side="left", padx=5, pady=5)
+        btn_history = ttk.Button(navbar_frame, text="Historial", command=self.show_history_section)
+        btn_history.pack(side="left", padx=5, pady=5)
 
     def show_recording_section(self):
         self.history_frame.pack_forget()
         self.recording_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+    def show_history_section(self):
+        self.recording_frame.pack_forget()
+        self.history_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
     def setup_recording_section(self):
         section_title = ttk.Label(self.recording_frame, text="Grabación y Conversión de Audio", font=("Helvetica", 16, "bold"))
         section_title.pack(pady=10)
-
-        wave_display_frame = tk.Frame(self.recording_frame, bd=2, relief="groove", height=200, width=600, bg="white")
-        wave_display_frame.pack(pady=20, padx=20, fill="x", expand=True)
-        wave_display_frame.pack_propagate(False)
-        wave_placeholder_label = tk.Label(wave_display_frame, text="*Acá va una imagen de la onda siendo grabada*", fg="gray", bg="white")
-        wave_placeholder_label.pack(expand=True)
 
         controls_frame = tk.Frame(self.recording_frame)
         controls_frame.pack(pady=20)
@@ -88,6 +86,46 @@ class AudioConverterApp(tk.Tk):
         self.record_button = ttk.Button(self.recording_frame, text="Grabar", command=self.toggle_recording)
         self.record_button.pack(pady=20)
 
+    def setup_history_section(self):
+        """Configura los elementos de la sección de Historial."""
+        section_title = ttk.Label(self.history_frame, text="Historial de Grabaciones", font=("Helvetica", 16, "bold"))
+        section_title.pack(pady=10)
+
+        header_frame = tk.Frame(self.history_frame, bd=1, relief="solid")
+        header_frame.pack(fill="x", padx=20)
+        ttk.Label(header_frame, text="Nombre", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
+        ttk.Label(header_frame, text="Fecha", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
+        ttk.Label(header_frame, text="Peso (Kb)", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
+
+        history_canvas = tk.Canvas(self.history_frame, borderwidth=0, background="#ffffff")
+        history_scrollbar = ttk.Scrollbar(self.history_frame, orient="vertical", command=history_canvas.yview)
+        self.history_inner_frame = tk.Frame(history_canvas, background="#ffffff")
+
+        history_canvas.create_window((0, 0), window=self.history_inner_frame, anchor="nw")
+        history_canvas.configure(yscrollcommand=history_scrollbar.set)
+
+        history_scrollbar.pack(side="right", fill="y", padx=(0, 20))
+        history_canvas.pack(side="left", fill="both", expand=True, padx=(20, 0), pady=10)
+
+    
+        #Recorrer listado de audios
+        listado_audios = self.listar_audios()
+        for i in listado_audios:
+            print(i)
+            self.add_history_entry(i["nombre"], i["date"], i["size_kb"])
+
+        # Configurar el scrollbar para que se actualice con el contenido
+        self.history_inner_frame.bind("<Configure>", lambda e: history_canvas.configure(scrollregion = history_canvas.bbox("all")))
+
+    def add_history_entry(self, name, date, size_kb):
+        entry_frame = tk.Frame(self.history_inner_frame, bd=1, relief="raised", padx=5, pady=5)
+        entry_frame.pack(fill="x", pady=2, padx=5)
+
+        ttk.Label(entry_frame, text=name, width=45, anchor="w").grid(row=0, column=0, sticky="w")
+        ttk.Label(entry_frame, text=date, width=25, anchor="center").grid(row=0, column=1)
+        ttk.Label(entry_frame, text=size_kb, width=45, anchor="center").grid(row=0, column=2, sticky="e")
+
+
     def toggle_recording(self):
         if not self.is_recording:
             self.on_rec()
@@ -104,6 +142,8 @@ class AudioConverterApp(tk.Tk):
         if self.controller.select_samplerate(num):
             messagebox.showerror("Error", "El microfono no soporta la tasa de muestreo " + num + " Hz")
 
+    def listar_audios(self):
+        return self.controller.listar_audios();        
        
 
 def main():

@@ -1,8 +1,10 @@
 from lib.audioLib import AudioLib
+from repository.audioRepository import AudioRepository
 
 class AudioLibController:
     def __init__(self):
         self.audio_lib = AudioLib()
+        self.audio_repository = AudioRepository()
 
     def get_devices(self):
         return self.audio_lib.list_input_devices()
@@ -25,6 +27,9 @@ class AudioLibController:
 
     def stop_recording(self):
         self.audio_lib.stop_recording()
+
+    def listar_audios(self):
+        return self.audio_repository.listar_audios()    
         
         
 
