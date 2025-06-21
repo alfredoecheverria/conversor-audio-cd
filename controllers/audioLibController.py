@@ -26,7 +26,11 @@ class AudioLibController:
         self.audio_lib.start_recording()
 
     def stop_recording(self):
-        self.audio_lib.stop_recording()
+        resp = self.audio_lib.stop_recording()
+        self.guardar_audio(resp)
+
+    def guardar_audio(self,resp):
+        self.audio_repository.guardar_audio(resp[0],resp[1],resp[2])
 
     def listar_audios(self):
         return self.audio_repository.listar_audios()    

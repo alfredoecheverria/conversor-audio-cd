@@ -40,6 +40,7 @@ class AudioConverterApp(tk.Tk):
         self.controller.stop_recording()
         self.record_button['text'] = "Record"
         self.record_button['command'] = self.on_rec
+        self.setup_history_section()
 
     def create_navbar(self):
         navbar_frame = tk.Frame(self.master, bd=2, relief="raised")
@@ -91,11 +92,14 @@ class AudioConverterApp(tk.Tk):
         section_title = ttk.Label(self.history_frame, text="Historial de Grabaciones", font=("Helvetica", 16, "bold"))
         section_title.pack(pady=10)
 
-        header_frame = tk.Frame(self.history_frame, bd=1, relief="solid")
+        header_frame = tk.Frame(self.history_frame, bd=1, relief="solid", background="white")
         header_frame.pack(fill="x", padx=20)
-        ttk.Label(header_frame, text="Nombre", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
-        ttk.Label(header_frame, text="Fecha", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
-        ttk.Label(header_frame, text="Peso (Kb)", font=("Helvetica", 10, "bold")).pack(side="left", expand=True)
+        ttk.Label(header_frame, text="Nombre", font=("Helvetica", 10, "bold"), width=25, anchor="w").grid(row=0, column=0, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Fecha", font=("Helvetica", 10, "bold"), width=25, anchor="w").grid(row=0, column=1, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Dispositivo Grabacion", font=("Helvetica", 10, "bold"), width=35, anchor="w").grid(row=0, column=2, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Peso (Kb)", font=("Helvetica", 10, "bold"), width=10, anchor="w").grid(row=0, column=3, sticky="w", padx=5)
+
+
 
         history_canvas = tk.Canvas(self.history_frame, borderwidth=0, background="#ffffff")
         history_scrollbar = ttk.Scrollbar(self.history_frame, orient="vertical", command=history_canvas.yview)
@@ -112,18 +116,24 @@ class AudioConverterApp(tk.Tk):
         listado_audios = self.listar_audios()
         for i in listado_audios:
             print(i)
-            self.add_history_entry(i["nombre"], i["date"], i["size_kb"])
-
+            self.add_history_entry(
+                i["nombre"].split("\\")[-1],
+                str(i["metadata"]["fecha_guardado"])[:16],
+                i["metadata"]["dispositivo_de_grabacion"],
+                i["metadata"]["size_kb"]             
+            )
         # Configurar el scrollbar para que se actualice con el contenido
         self.history_inner_frame.bind("<Configure>", lambda e: history_canvas.configure(scrollregion = history_canvas.bbox("all")))
 
-    def add_history_entry(self, name, date, size_kb):
-        entry_frame = tk.Frame(self.history_inner_frame, bd=1, relief="raised", padx=5, pady=5)
-        entry_frame.pack(fill="x", pady=2, padx=5)
+    def add_history_entry(self, name, date, device, size_kb):
+        row_index = self.history_inner_frame.grid_size()[1]
 
-        ttk.Label(entry_frame, text=name, width=45, anchor="w").grid(row=0, column=0, sticky="w")
-        ttk.Label(entry_frame, text=date, width=25, anchor="center").grid(row=0, column=1)
-        ttk.Label(entry_frame, text=size_kb, width=45, anchor="center").grid(row=0, column=2, sticky="e")
+        ttk.Label(self.history_inner_frame, text=name, width=25, anchor="w").grid(row=row_index, column=0, sticky="w", padx=5, pady=2)
+        ttk.Label(self.history_inner_frame, text=date, width=25, anchor="w").grid(row=row_index, column=1, sticky="w", padx=5, pady=2)
+        ttk.Label(self.history_inner_frame, text=device, width=35, anchor="w").grid(row=row_index, column=2, sticky="w", padx=10, pady=2)
+        ttk.Label(self.history_inner_frame, text=size_kb, width=10, anchor="w").grid(row=row_index, column=3, sticky="w", padx=5, pady=2)
+
+
 
 
     def toggle_recording(self):

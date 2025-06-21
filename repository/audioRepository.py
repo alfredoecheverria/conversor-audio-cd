@@ -11,14 +11,16 @@ class AudioRepository:
         self.coleccion = self.db["audios"]
 
 
-    def guardar_audio(self, path_archivo: str, nombre: str = None, dispositivo: str = None) -> str:
-        nombre = nombre or path_archivo
+    def guardar_audio(self, path_archivo: str, tamanio:str = None,  dispositivo: str = None) -> str:
+    
 
         metadata = {
             "fecha_guardado": datetime.now(),
-            "dispositivo_de_grabacion": dispositivo or "desconocido"
+            "dispositivo_de_grabacion": dispositivo or "desconocido",
+            "size_kb":tamanio
         }
 
+        nombre = path_archivo.split("\\")[-1]
         with open(path_archivo, "rb") as f:
             file_id = self.fs.put(f, filename=nombre, **(metadata or {}))
             self.coleccion.insert_one({

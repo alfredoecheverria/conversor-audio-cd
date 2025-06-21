@@ -94,7 +94,7 @@ class AudioLib:
     def stop_recording(self):
         self.recording = False
         self.wait_for_thread()
-        return (os.getcwd() + self.current_filename, str(int(os.stat(self.current_filename).st_size / 1024)) + "Kb", 
+        return (os.getcwd() + "\\" +self.current_filename, str(int(os.stat(self.current_filename).st_size / 1024)) + "Kb", 
               sd.query_devices(self.selected_device)['name']) 
 
     def wait_for_thread(self):
