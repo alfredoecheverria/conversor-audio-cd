@@ -11,10 +11,10 @@ class AudioConverterApp(tk.Tk):
 
         self.title("Conversor de Audio Analógico a Digital")
         self.geometry("800x600") # Tamaño inicial de la ventana
-
+        self.configure(bg="#cce5ff")
         # --- Frames principales para las secciones ---
-        self.recording_frame = tk.Frame(self, bg="lightgray")
-        self.history_frame = tk.Frame(self, bg="lightblue")
+        self.recording_frame = tk.Frame(self, bg="#cce5ff")
+        self.history_frame = tk.Frame(self, bg="#cce5ff")
 
         # --- Navegación entre secciones ---
         self.create_navbar()
@@ -26,32 +26,35 @@ class AudioConverterApp(tk.Tk):
         self.record_button = None # Para poder cambiar el texto del botón
         self.sampling_rate_val = 0 # Almacenará la tasa de muestreo numérica
         self.bit_depth_val = 0 # Almacenará la profundidad de bits numérica
-
+        self.recording_duration = 0  # Almacenar duracion de la grabacion en curso 
+        self.duration_label = None
+        self.timer_job = None
         self.show_recording_section()
         self.setup_recording_section()
         self.setup_history_section()
 
     def on_rec(self):
         self.controller.start_recording()
-        self.record_button['text'] = "Stop"
-        self.record_button['command'] = self.on_stop
+        self.record_button.config(text="Detener", command=self.on_stop, bg="#c75c5c")
+        self.start_timer()
 
     def on_stop(self):
         self.controller.stop_recording()
-        self.record_button['text'] = "Record"
-        self.record_button['command'] = self.on_rec
+        self.record_button.config(text="Grabar", command=self.on_rec, bg="#75cf90")
+        self.stop_timer()  # Detener contador
+        self.duration_label.config(text="00:00") # Resetear valor del contador a 0
         #Recorrer listado de audios
         listado_audios = self.listar_audios()
         for widget in self.history_inner_frame.winfo_children():
             widget.destroy()
         for i in listado_audios:
-            print(i)
             self.add_history_entry(
                 i["nombre"].split("\\")[-1],
                 str(i["metadata"]["fecha_guardado"])[:16],
                 i["metadata"]["dispositivo_de_grabacion"],
                 i["metadata"]["size_kb"]             
             )
+        messagebox.showinfo("Grabación finalizada", "El audio fue grabado y guardado exitosamente.")
 
 
     def create_navbar(self):
@@ -73,8 +76,15 @@ class AudioConverterApp(tk.Tk):
         self.history_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
     def setup_recording_section(self):
-        section_title = ttk.Label(self.recording_frame, text="Grabación y Conversión de Audio", font=("Helvetica", 16, "bold"))
-        section_title.pack(pady=10)
+        section_title = tk.Label(
+            self.recording_frame,
+            text="Grabación y Conversión de Audio",
+            font=("Helvetica", 20, "bold"),
+            fg="#000000",
+            bg="#cce5ff",
+            pady=10
+        )
+        section_title.pack(pady=(20, 10), fill="x")
 
         controls_frame = tk.Frame(self.recording_frame)
         controls_frame.pack(pady=20)
@@ -96,19 +106,42 @@ class AudioConverterApp(tk.Tk):
         self.device_menu = ttk.OptionMenu(controls_frame, self.device_var, device_names[0], *device_names,command=self.select_device)
         self.device_menu.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
 
-        self.record_button = ttk.Button(self.recording_frame, text="Grabar", command=self.toggle_recording)
+        self.record_button = tk.Button(
+            self.recording_frame,
+            text="Grabar",
+            command=self.toggle_recording,
+            bg="#75cf90",
+            width=15,
+            height=2,
+            font=("Helvetica",14,"bold")
+        )
         self.record_button.pack(pady=20)
+
+        self.duration_label = tk.Label(
+            self.recording_frame,
+            text="00:00", 
+            font=("Courier New", 70, "bold"),
+            fg="#0b3d91",
+            bg="#000000",
+            pady=10
+        )
+        self.duration_label.pack(pady=5)
 
     def setup_history_section(self):
         """Configura los elementos de la sección de Historial."""
-        section_title = ttk.Label(self.history_frame, text="Historial de Grabaciones", font=("Helvetica", 16, "bold"))
+        section_title = tk.Label(
+            self.history_frame,
+            text="Historial de Grabaciones",
+            font=("Helvetica", 16, "bold"),
+            bg="#cce5ff"
+        )
         section_title.pack(pady=10)
 
         header_frame = tk.Frame(self.history_frame, bd=1, relief="solid", background="white")
         header_frame.pack(fill="x", padx=20)
-        ttk.Label(header_frame, text="Nombre", font=("Helvetica", 10, "bold"), width=25, anchor="w").grid(row=0, column=0, sticky="w", padx=5)
-        ttk.Label(header_frame, text="Fecha", font=("Helvetica", 10, "bold"), width=25, anchor="w").grid(row=0, column=1, sticky="w", padx=5)
-        ttk.Label(header_frame, text="Dispositivo Grabacion", font=("Helvetica", 10, "bold"), width=35, anchor="w").grid(row=0, column=2, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Nombre", font=("Helvetica", 10, "bold"), width=35, anchor="w").grid(row=0, column=0, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Fecha", font=("Helvetica", 10, "bold"), width=20, anchor="w").grid(row=0, column=1, sticky="w", padx=5)
+        ttk.Label(header_frame, text="Dispositivo Grabacion", font=("Helvetica", 10, "bold"), width=30, anchor="w").grid(row=0, column=2, sticky="w", padx=5)
         ttk.Label(header_frame, text="Peso (Kb)", font=("Helvetica", 10, "bold"), width=10, anchor="w").grid(row=0, column=3, sticky="w", padx=5)
 
 
@@ -129,7 +162,6 @@ class AudioConverterApp(tk.Tk):
         for widget in self.history_inner_frame.winfo_children():
             widget.destroy()
         for i in listado_audios:
-            print(i)
             self.add_history_entry(
                 i["nombre"].split("\\")[-1],
                 str(i["metadata"]["fecha_guardado"])[:16],
@@ -160,10 +192,10 @@ class AudioConverterApp(tk.Tk):
         row_frame.bind("<Button-1>", on_row_click)
 
         # Crear labels dentro del frame de fila
-        ttk.Label(row_frame, text=name, width=25, anchor="w").grid(row=0, column=0, sticky="w", padx=5, pady=2)
-        ttk.Label(row_frame, text=date, width=25, anchor="w").grid(row=0, column=1, sticky="w", padx=5, pady=2)
-        ttk.Label(row_frame, text=device, width=35, anchor="w").grid(row=0, column=2, sticky="w", padx=10, pady=2)
-        ttk.Label(row_frame, text=size_kb, width=10, anchor="w").grid(row=0, column=3, sticky="w", padx=5, pady=2)
+        ttk.Label(row_frame, text=name, width=45, anchor="w").grid(row=0, column=0, sticky="w")
+        ttk.Label(row_frame, text=date, width=25, anchor="w").grid(row=0, column=1, sticky="w")
+        ttk.Label(row_frame, text=device, width=35, anchor="w").grid(row=0, column=2, sticky="w")
+        ttk.Label(row_frame, text=size_kb, width=15, anchor="w").grid(row=0, column=3, sticky="w")
 
         # También podés hacer que los labels propaguen el clic
         for child in row_frame.winfo_children():
@@ -188,7 +220,23 @@ class AudioConverterApp(tk.Tk):
             messagebox.showerror("Error", "El microfono no soporta la tasa de muestreo " + num + " Hz")
 
     def listar_audios(self):
-        return self.controller.listar_audios()        
+        return self.controller.listar_audios()      
+
+    def start_timer(self):
+        self.recording_duration = 0
+        self.update_timer()
+
+    def update_timer(self):
+        minutes = self.recording_duration // 60
+        seconds = self.recording_duration % 60
+        self.duration_label.config(text=f"{minutes:02d}:{seconds:02d}")
+        self.recording_duration += 1
+        self.timer_job = self.after(1000, self.update_timer)
+
+    def stop_timer(self):
+        if self.timer_job is not None:
+            self.after_cancel(self.timer_job)
+            self.timer_job = None  
 
 
 def main():
